@@ -8,15 +8,26 @@ export interface TrackPoint {
   z: number;
 }
 
+export interface TrackObstacle {
+  id: string;
+  kind: 'table' | 'chair' | 'cone';
+  x: number;
+  z: number;
+  rotation?: number;
+  scale?: number;
+}
+
 export interface TrackDef {
   id: string;
   name: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced' | 'special';
   description: string;
+  environment?: 'outdoor' | 'lab';
   width: number; // track half-width
   spawnPos: [number, number, number]; // x, y, z
   spawnRotation: number; // radians
   waypoints: TrackPoint[];
+  obstacles?: TrackObstacle[];
   unlockRequirement?: { totalClassLaps: number };
 }
 
@@ -75,6 +86,80 @@ const cityWaypoints: TrackPoint[] = [
   { x: -20, z: -28 },
 ];
 
+const classroomLabWaypoints: TrackPoint[] = [
+  { x: -34, z: -18 }, { x: -22, z: -18 }, { x: -12, z: -10 }, { x: -2, z: -8 },
+  { x: 8, z: -8 }, { x: 18, z: -16 }, { x: 30, z: -16 }, { x: 34, z: -8 },
+  { x: 32, z: 2 }, { x: 22, z: 8 }, { x: 12, z: 6 }, { x: 4, z: 10 },
+  { x: -6, z: 18 }, { x: -18, z: 18 }, { x: -28, z: 10 }, { x: -34, z: 0 },
+  { x: -32, z: -8 },
+];
+
+const classroomLabObstacles: TrackObstacle[] = [
+  { id: 'table-a', kind: 'table', x: -10, z: 8, rotation: 0.15, scale: 1.1 },
+  { id: 'chair-a1', kind: 'chair', x: -14, z: 10, rotation: 0.8 },
+  { id: 'chair-a2', kind: 'chair', x: -6, z: 10, rotation: -0.4 },
+  { id: 'chair-a3', kind: 'chair', x: -9, z: 4, rotation: 2.2 },
+  { id: 'table-b', kind: 'table', x: 16, z: -2, rotation: -0.2, scale: 1.15 },
+  { id: 'chair-b1', kind: 'chair', x: 12, z: -4, rotation: 0.4 },
+  { id: 'chair-b2', kind: 'chair', x: 20, z: -4, rotation: -1.1 },
+  { id: 'chair-b3', kind: 'chair', x: 16, z: 2, rotation: 1.8 },
+  { id: 'table-c', kind: 'table', x: 2, z: -20, rotation: 0.05, scale: 1.0 },
+  { id: 'chair-c1', kind: 'chair', x: -2, z: -22, rotation: 0.6 },
+  { id: 'chair-c2', kind: 'chair', x: 6, z: -22, rotation: -0.2 },
+  { id: 'cone-1', kind: 'cone', x: -20, z: -5, rotation: 0, scale: 1.0 },
+  { id: 'cone-2', kind: 'cone', x: 26, z: 12, rotation: 0, scale: 1.0 },
+  { id: 'cone-3', kind: 'cone', x: -2, z: 22, rotation: 0, scale: 1.0 },
+];
+
+const classroomLabBWaypoints: TrackPoint[] = [
+  { x: -32, z: -20 }, { x: -22, z: -22 }, { x: -12, z: -16 }, { x: -4, z: -10 },
+  { x: 8, z: -12 }, { x: 20, z: -20 }, { x: 32, z: -18 }, { x: 36, z: -6 },
+  { x: 28, z: 4 }, { x: 16, z: 8 }, { x: 6, z: 4 }, { x: -2, z: 8 },
+  { x: -10, z: 18 }, { x: -22, z: 20 }, { x: -34, z: 12 }, { x: -36, z: 0 },
+  { x: -34, z: -10 },
+];
+
+const classroomLabBObstacles: TrackObstacle[] = [
+  { id: 'table-b1', kind: 'table', x: -18, z: 4, rotation: 0.05, scale: 1.05 },
+  { id: 'chair-b1a', kind: 'chair', x: -22, z: 6, rotation: 0.9 },
+  { id: 'chair-b1b', kind: 'chair', x: -14, z: 6, rotation: -0.6 },
+  { id: 'chair-b1c', kind: 'chair', x: -18, z: 0, rotation: 2.3 },
+  { id: 'table-b2', kind: 'table', x: 10, z: -2, rotation: 0.35, scale: 1.2 },
+  { id: 'chair-b2a', kind: 'chair', x: 6, z: -4, rotation: 0.2 },
+  { id: 'chair-b2b', kind: 'chair', x: 14, z: -4, rotation: -0.9 },
+  { id: 'chair-b2c', kind: 'chair', x: 10, z: 2, rotation: 1.6 },
+  { id: 'table-b3', kind: 'table', x: 24, z: 14, rotation: -0.15, scale: 0.95 },
+  { id: 'chair-b3a', kind: 'chair', x: 20, z: 16, rotation: 0.4 },
+  { id: 'chair-b3b', kind: 'chair', x: 28, z: 16, rotation: -0.3 },
+  { id: 'cone-b1', kind: 'cone', x: -4, z: -22, scale: 1.0 },
+  { id: 'cone-b2', kind: 'cone', x: 34, z: 8, scale: 1.0 },
+  { id: 'cone-b3', kind: 'cone', x: -30, z: 18, scale: 1.0 },
+];
+
+const classroomLabCWaypoints: TrackPoint[] = [
+  { x: -30, z: -18 }, { x: -18, z: -18 }, { x: -8, z: -24 }, { x: 4, z: -24 },
+  { x: 16, z: -16 }, { x: 28, z: -10 }, { x: 34, z: 0 }, { x: 28, z: 10 },
+  { x: 16, z: 14 }, { x: 8, z: 22 }, { x: -4, z: 22 }, { x: -14, z: 14 },
+  { x: -26, z: 10 }, { x: -34, z: 0 }, { x: -34, z: -10 },
+];
+
+const classroomLabCObstacles: TrackObstacle[] = [
+  { id: 'table-c1', kind: 'table', x: -8, z: -6, rotation: -0.1, scale: 1.15 },
+  { id: 'chair-c1a', kind: 'chair', x: -12, z: -8, rotation: 0.4 },
+  { id: 'chair-c1b', kind: 'chair', x: -4, z: -8, rotation: -0.5 },
+  { id: 'chair-c1c', kind: 'chair', x: -8, z: -2, rotation: 2.0 },
+  { id: 'table-c2', kind: 'table', x: 18, z: 0, rotation: 0.2, scale: 1.05 },
+  { id: 'chair-c2a', kind: 'chair', x: 14, z: -2, rotation: 0.8 },
+  { id: 'chair-c2b', kind: 'chair', x: 22, z: -2, rotation: -0.2 },
+  { id: 'chair-c2c', kind: 'chair', x: 18, z: 4, rotation: 1.7 },
+  { id: 'table-c3', kind: 'table', x: 2, z: 14, rotation: -0.35, scale: 1.1 },
+  { id: 'chair-c3a', kind: 'chair', x: -2, z: 16, rotation: 0.1 },
+  { id: 'chair-c3b', kind: 'chair', x: 6, z: 16, rotation: -0.9 },
+  { id: 'cone-c1', kind: 'cone', x: -22, z: -24, scale: 1.0 },
+  { id: 'cone-c2', kind: 'cone', x: 30, z: 18, scale: 1.0 },
+  { id: 'cone-c3', kind: 'cone', x: -34, z: 16, scale: 1.0 },
+];
+
 export const TRACKS: TrackDef[] = [
   {
     id: 'oval',
@@ -115,6 +200,45 @@ export const TRACKS: TrackDef[] = [
       { x: -20, z: -28 },
     ],
     unlockRequirement: { totalClassLaps: 30 },
+  },
+  {
+    id: 'classroom-lab',
+    name: 'Classroom Lab',
+    difficulty: 'special',
+    description: 'Lab-like route with chairs and tables (sim-to-real practice)',
+    environment: 'lab',
+    width: 4.8,
+    spawnPos: [-34, 0.5, -18],
+    spawnRotation: computeSpawnRotation(-34, -18, classroomLabWaypoints),
+    waypoints: classroomLabWaypoints,
+    obstacles: classroomLabObstacles,
+    unlockRequirement: { totalClassLaps: 15 },
+  },
+  {
+    id: 'classroom-lab-b',
+    name: 'Classroom Lab B',
+    difficulty: 'special',
+    description: 'Alternate lab layout with shifted desks and tighter bends',
+    environment: 'lab',
+    width: 4.8,
+    spawnPos: [-32, 0.5, -20],
+    spawnRotation: computeSpawnRotation(-32, -20, classroomLabBWaypoints),
+    waypoints: classroomLabBWaypoints,
+    obstacles: classroomLabBObstacles,
+    unlockRequirement: { totalClassLaps: 18 },
+  },
+  {
+    id: 'classroom-lab-c',
+    name: 'Classroom Lab C',
+    difficulty: 'special',
+    description: 'Lab slalom variant with wider visuals and table clusters',
+    environment: 'lab',
+    width: 4.6,
+    spawnPos: [-30, 0.5, -18],
+    spawnRotation: computeSpawnRotation(-30, -18, classroomLabCWaypoints),
+    waypoints: classroomLabCWaypoints,
+    obstacles: classroomLabCObstacles,
+    unlockRequirement: { totalClassLaps: 22 },
   },
 ];
 
