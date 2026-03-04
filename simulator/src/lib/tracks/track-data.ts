@@ -10,7 +10,7 @@ export interface TrackPoint {
 
 export interface TrackObstacle {
   id: string;
-  kind: 'table' | 'chair' | 'cone';
+  kind: 'table' | 'chair' | 'cone' | 'tree' | 'bleachers' | 'grandstand';
   x: number;
   z: number;
   rotation?: number;
@@ -75,6 +75,7 @@ function computeSpawnRotation(spawnX: number, spawnZ: number, waypoints: TrackPo
 }
 
 const ovalWaypoints = ovalTrack(0, 0, 30, 20, 64);
+const nascarRacingWaypoints = ovalTrack(0, 0, 62, 38, 96);
 const sCurveWaypoints = sCurveTrack();
 const cityWaypoints: TrackPoint[] = [
   { x: -25, z: -25 }, { x: -25, z: 25 }, { x: -15, z: 30 },
@@ -160,6 +161,28 @@ const classroomLabCObstacles: TrackObstacle[] = [
   { id: 'cone-c3', kind: 'cone', x: -34, z: 16, scale: 1.0 },
 ];
 
+const nascarRacingObstacles: TrackObstacle[] = [
+  { id: 'nascar-bleachers-n', kind: 'bleachers', x: 0, z: -58, rotation: 0, scale: 1.35 },
+  { id: 'nascar-bleachers-s', kind: 'bleachers', x: 0, z: 58, rotation: Math.PI, scale: 1.35 },
+  { id: 'nascar-grandstand-e', kind: 'grandstand', x: 86, z: 0, rotation: -Math.PI / 2, scale: 1.4 },
+  { id: 'nascar-grandstand-w', kind: 'grandstand', x: -86, z: 0, rotation: Math.PI / 2, scale: 1.4 },
+  { id: 'nascar-tree-1', kind: 'tree', x: 78, z: -46, scale: 1.1 },
+  { id: 'nascar-tree-2', kind: 'tree', x: 93, z: -28, scale: 0.95 },
+  { id: 'nascar-tree-3', kind: 'tree', x: 96, z: 16, scale: 1.0 },
+  { id: 'nascar-tree-4', kind: 'tree', x: 85, z: 44, scale: 1.2 },
+  { id: 'nascar-tree-5', kind: 'tree', x: 56, z: 63, scale: 1.1 },
+  { id: 'nascar-tree-6', kind: 'tree', x: 18, z: 70, scale: 0.95 },
+  { id: 'nascar-tree-7', kind: 'tree', x: -22, z: 70, scale: 1.05 },
+  { id: 'nascar-tree-8', kind: 'tree', x: -60, z: 64, scale: 1.15 },
+  { id: 'nascar-tree-9', kind: 'tree', x: -88, z: 44, scale: 0.95 },
+  { id: 'nascar-tree-10', kind: 'tree', x: -96, z: 8, scale: 1.0 },
+  { id: 'nascar-tree-11', kind: 'tree', x: -90, z: -34, scale: 1.2 },
+  { id: 'nascar-tree-12', kind: 'tree', x: -58, z: -62, scale: 1.05 },
+  { id: 'nascar-tree-13', kind: 'tree', x: -18, z: -70, scale: 1.0 },
+  { id: 'nascar-tree-14', kind: 'tree', x: 24, z: -69, scale: 1.15 },
+  { id: 'nascar-tree-15', kind: 'tree', x: 61, z: -62, scale: 0.9 },
+];
+
 export const TRACKS: TrackDef[] = [
   {
     id: 'oval',
@@ -170,6 +193,18 @@ export const TRACKS: TrackDef[] = [
     spawnPos: [30, 0.5, 0],
     spawnRotation: computeSpawnRotation(30, 0, ovalWaypoints),
     waypoints: ovalWaypoints,
+  },
+  {
+    id: 'nascar-racing-track',
+    name: 'nascar racing track',
+    difficulty: 'beginner',
+    description: 'Large easy oval inspired by stock car circuits, with open sight lines',
+    environment: 'outdoor',
+    width: 7.5,
+    spawnPos: [62, 0.5, 0],
+    spawnRotation: computeSpawnRotation(62, 0, nascarRacingWaypoints),
+    waypoints: nascarRacingWaypoints,
+    obstacles: nascarRacingObstacles,
   },
   {
     id: 's-curves',

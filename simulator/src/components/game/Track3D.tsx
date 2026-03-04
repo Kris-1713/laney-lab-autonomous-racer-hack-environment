@@ -20,7 +20,7 @@ export function Track3D({ trackId }: { trackId: string }) {
     () => buildTrackGeometry(track.waypoints, track.width),
     [track],
   );
-  const labObstacles = useMemo(
+  const displayedObstacles = useMemo(
     () => (track.environment === 'lab' ? jitterLabObstacles(track.obstacles ?? [], visualSeed) : (track.obstacles ?? [])),
     [track, visualSeed],
   );
@@ -33,7 +33,8 @@ export function Track3D({ trackId }: { trackId: string }) {
         <meshStandardMaterial color={track.environment === 'lab' ? '#5f5b52' : '#2d5a27'} />
       </mesh>
 
-      {track.environment === 'lab' && <LabEnvironment obstacles={labObstacles} />}
+      {track.environment === 'lab' && <LabEnvironment obstacles={displayedObstacles} />}
+      {track.environment === 'outdoor' && <OutdoorEnvironment obstacles={displayedObstacles} />}
 
       {/* Track surface */}
       <mesh geometry={surfaceGeo} position={[0, 0.01, 0]} receiveShadow>
@@ -292,13 +293,58 @@ function LabEnvironment({ obstacles }: { obstacles: TrackObstacle[] }) {
           rotation={[0, obs.rotation ?? 0, 0]}
           scale={obs.scale ?? 1}
         >
-          {obs.kind === 'table' && <TableProp />}
-          {obs.kind === 'chair' && <ChairProp />}
-          {obs.kind === 'cone' && <ConeProp />}
+          {renderObstacle(obs)}
         </group>
       ))}
     </group>
   );
+}
+
+function OutdoorEnvironment({ obstacles }: { obstacles: TrackObstacle[] }) {
+  return (
+    <group>
+      {/* Infield patch for visual contrast on large outdoor ovals */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.002, 0]} receiveShadow>
+        <ellipseGeometry args={[42, 22, 64]} />
+        <meshStandardMaterial color="#3f7f34" roughness={0.95} />
+      </mesh>
+
+      {/* Sparse perimeter light poles make the space feel like a race venue */}
+      {[-78, -52, -26, 0, 26, 52, 78].flatMap((x) => [-56, 56].map((z) => ({ x, z }))).map(({ x, z }) => (
+        <group key={`pole-${x}-${z}`} position={[x, 0, z]}>
+          <mesh position={[0, 6, 0]} castShadow>
+            <cylinderGeometry args={[0.22, 0.28, 12, 8]} />
+            <meshStandardMaterial color="#858c93" />
+          </mesh>
+          <mesh position={[0, 11.85, 0]}>
+            <boxGeometry args={[2.4, 0.12, 0.5]} />
+            <meshStandardMaterial color="#d9dde2" emissive="#fff5bf" emissiveIntensity={0.25} />
+          </mesh>
+        </group>
+      ))}
+
+      {obstacles.map((obs) => (
+        <group
+          key={obs.id}
+          position={[obs.x, 0, obs.z]}
+          rotation={[0, obs.rotation ?? 0, 0]}
+          scale={obs.scale ?? 1}
+        >
+          {renderObstacle(obs)}
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function renderObstacle(obs: TrackObstacle) {
+  if (obs.kind === 'table') return <TableProp />;
+  if (obs.kind === 'chair') return <ChairProp />;
+  if (obs.kind === 'cone') return <ConeProp />;
+  if (obs.kind === 'tree') return <TreeProp />;
+  if (obs.kind === 'bleachers') return <BleachersProp />;
+  if (obs.kind === 'grandstand') return <GrandstandProp />;
+  return null;
 }
 
 function ComputerBenchRow({
@@ -448,6 +494,81 @@ function ConeProp() {
       <mesh position={[0, 0.03, 0]} receiveShadow>
         <cylinderGeometry args={[0.55, 0.55, 0.06, 12]} />
         <meshStandardMaterial color="#111827" />
+      </mesh>
+    </group>
+  );
+}
+
+function TreeProp() {
+  return (
+    <group>
+      <mesh position={[0, 1.2, 0]} castShadow>
+        <cylinderGeometry args={[0.28, 0.36, 2.4, 10]} />
+        <meshStandardMaterial color="#6b4f2a" />
+      </mesh>
+      <mesh position={[0, 2.7, 0]} castShadow receiveShadow>
+        <coneGeometry args={[1.35, 2.2, 14]} />
+        <meshStandardMaterial color="#2f7d32" />
+      </mesh>
+      <mesh position={[0, 3.6, 0]} castShadow receiveShadow>
+        <coneGeometry args={[1.05, 1.8, 14]} />
+        <meshStandardMaterial color="#2b6f2e" />
+      </mesh>
+    </group>
+  );
+}
+
+function BleachersProp() {
+  return (
+    <group>
+      <mesh position={[0, 0.4, 0]} receiveShadow>
+        <boxGeometry args={[12, 0.22, 4.2]} />
+        <meshStandardMaterial color="#6b7280" />
+      </mesh>
+      <mesh position={[0, 0.75, -1.2]} receiveShadow>
+        <boxGeometry args={[12, 0.22, 3.1]} />
+        <meshStandardMaterial color="#7b8490" />
+      </mesh>
+      <mesh position={[0, 1.1, -2.1]} receiveShadow>
+        <boxGeometry args={[12, 0.22, 2.0]} />
+        <meshStandardMaterial color="#8892a0" />
+      </mesh>
+      <mesh position={[0, 1.45, -2.8]} receiveShadow>
+        <boxGeometry args={[12, 0.22, 1.1]} />
+        <meshStandardMaterial color="#9aa3ad" />
+      </mesh>
+      {[-5.6, 5.6].map((x) => (
+        <mesh key={x} position={[x, 0.72, -1.2]}>
+          <boxGeometry args={[0.28, 1.1, 3.3]} />
+          <meshStandardMaterial color="#5b6370" />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function GrandstandProp() {
+  return (
+    <group>
+      <mesh position={[0, 0.7, 0]} castShadow receiveShadow>
+        <boxGeometry args={[18, 1.4, 5.6]} />
+        <meshStandardMaterial color="#4b5563" />
+      </mesh>
+      <mesh position={[0, 2.2, -0.6]} castShadow receiveShadow>
+        <boxGeometry args={[18.6, 1.6, 4.8]} />
+        <meshStandardMaterial color="#64748b" />
+      </mesh>
+      <mesh position={[0, 3.3, -1.8]} castShadow receiveShadow>
+        <boxGeometry args={[19.2, 0.2, 2.8]} />
+        <meshStandardMaterial color="#e2e8f0" />
+      </mesh>
+      <mesh position={[0, 4.2, -1.8]} castShadow>
+        <boxGeometry args={[19.2, 1.6, 0.25]} />
+        <meshStandardMaterial color="#b91c1c" />
+      </mesh>
+      <mesh position={[0, 4.4, 0.6]} castShadow receiveShadow>
+        <boxGeometry args={[20.0, 0.24, 7.0]} />
+        <meshStandardMaterial color="#9ca3af" />
       </mesh>
     </group>
   );
