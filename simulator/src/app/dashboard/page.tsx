@@ -12,6 +12,7 @@ import { downloadBlob, exportAllRunCapturesZip, exportRunCaptureZip } from '@/li
 import {
   createTrainingJob,
   fetchActiveModelVersion,
+  getRemoteRunsSummary,
   isApiConfigured,
   listRemoteRuns,
   listModels as fetchRemoteModels,
@@ -46,6 +47,7 @@ export default function DashboardPage() {
   const [remoteModels, setRemoteModels] = useState<ModelRecordPayload[]>([]);
   const [remoteJobs, setRemoteJobs] = useState<TrainingJobRecordPayload[]>([]);
   const [remoteRuns, setRemoteRuns] = useState<RunRecordPayload[]>([]);
+  const [remoteSummary, setRemoteSummary] = useState<{ completed_runs: number; completed_laps: number; completed_frames: number; best_lap_ms?: number | null } | null>(null);
   const [activeRemoteModel, setActiveRemoteModel] = useState<string | null>(null);
   const [remoteLoading, setRemoteLoading] = useState(false);
   const [remoteError, setRemoteError] = useState<string | null>(null);
@@ -79,12 +81,14 @@ export default function DashboardPage() {
     setRemoteLoading(true);
     setRemoteError(null);
     try {
-      const [models, jobs, active, recentRuns] = await Promise.all([
+      const [summary, models, jobs, active, recentRuns] = await Promise.all([
+        getRemoteRunsSummary(),
         fetchRemoteModels(20),
         fetchRemoteTrainingJobs(20),
         fetchActiveModelVersion(),
         listRemoteRuns(12),
       ]);
+      setRemoteSummary(summary);
       setRemoteModels(models);
       setRemoteJobs(jobs);
       setActiveRemoteModel(active);
@@ -183,8 +187,10 @@ export default function DashboardPage() {
 
   const manualRuns = runs.filter((r) => r.driveMode === 'manual');
   const aiRuns = runs.filter((r) => r.driveMode === 'ai');
-  const totalLaps = stats?.totalLaps ?? 0;
-  const totalFrames = stats?.totalFrames ?? 0;
+  const totalRuns = remoteSummary?.completed_runs ?? runs.length;
+  const totalLaps = remoteSummary?.completed_laps ?? stats?.totalLaps ?? 0;
+  const totalFrames = remoteSummary?.completed_frames ?? stats?.totalFrames ?? 0;
+  const bestLapMs = remoteSummary?.best_lap_ms ?? stats?.bestLapMs ?? null;
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-white">
@@ -279,7 +285,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <div className="text-xs text-gray-500 uppercase tracking-wider">Collected</div>
-                <div className="text-lg font-bold text-white">{runs.length} <span className="text-sm font-normal text-gray-500">runs</span></div>
+                <div className="text-lg font-bold text-white">{totalRuns} <span className="text-sm font-normal text-gray-500">runs</span></div>
               </div>
             </div>
             <div className="flex items-center gap-3 min-w-0">
@@ -298,7 +304,7 @@ export default function DashboardPage() {
               <div>
                 <div className="text-xs text-gray-500 uppercase tracking-wider">Best Lap</div>
                 <div className="text-lg font-bold text-white">
-                  {stats?.bestLapMs ? `${(stats.bestLapMs / 1000).toFixed(2)}s` : '--'}
+                  {bestLapMs ? `${(bestLapMs / 1000).toFixed(2)}s` : '--'}
                 </div>
               </div>
             </div>
@@ -324,9 +330,9 @@ export default function DashboardPage() {
             )}
           </div>
           {/* Progress bar toward next milestone */}
-          {runs.length > 0 && (
+          {totalRuns > 0 && (
             <div className="mt-4 pt-4 border-t border-gray-800/50">
-              <ProgressMilestone totalRuns={runs.length} />
+              <ProgressMilestone totalRuns={totalRuns} />
             </div>
           )}
         </div>
