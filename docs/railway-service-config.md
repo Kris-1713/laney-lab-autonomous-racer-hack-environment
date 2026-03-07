@@ -27,7 +27,7 @@ Use this as the source of truth to avoid service config drift.
 - Root Directory: `/services/api`
 - Config file: `services/api/railway.json`
 - Builder: `DOCKERFILE`
-- Dockerfile path: `services/api/Dockerfile`
+- Dockerfile path: `Dockerfile`
 - Build Command override: none
 - Start Command override: none
 - Restart policy: `ON_FAILURE`, max retries `10`
