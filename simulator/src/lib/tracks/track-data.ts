@@ -568,3 +568,24 @@ export const TRACKS: TrackDef[] = [
 export function getTrack(id: string): TrackDef {
   return TRACKS.find((t) => t.id === id) || TRACKS[0];
 }
+// --- S Track ---
+export const sTrack = {
+  id: "s-track",
+  name: "The Serpent",
+  // Coordinates representing an S-shape
+  points: [
+    { x: 0, y: 0 },
+    { x: 10, y: 5 },
+    { x: 20, y: 15 },
+    { x: 30, y: 20 }, // Peak of first curve
+    { x: 40, y: 15 },
+    { x: 50, y: 5 },
+    { x: 60, y: -5 },
+    { x: 70, y: -15 },
+    { x: 80, y: -20 }, // Trough of second curve
+    { x: 90, y: -15 },
+    { x: 100, y: -5 },
+    { x: 110, y: 0 }
+  ],
+  width: 10,
+};
