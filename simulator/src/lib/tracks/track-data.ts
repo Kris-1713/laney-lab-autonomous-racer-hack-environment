@@ -2,6 +2,7 @@
  * Track definitions — each track is a series of waypoints forming a closed loop.
  * The car follows these waypoints, and boundaries are computed from them.
  */
+//This a an example
 
 export interface TrackPoint {
   x: number;
