@@ -60,6 +60,12 @@ interface GameState {
   keys: Record<string, boolean>;
   setKey: (key: string, down: boolean) => void;
 
+  // Gamepad analog input
+  gamepadAxes: { steer: number; throttle: number; brake: number; active: boolean };
+  setGamepadAxes: (steer: number, throttle: number, brake: number, active: boolean) => void;
+  gamepadConnected: boolean;
+  setGamepadConnected: (connected: boolean) => void;
+
   // Lap tracking
   currentLapStart: number;
   lapCount: number;
@@ -141,6 +147,11 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   keys: {},
   setKey: (key, down) => set((s) => ({ keys: { ...s.keys, [key]: down } })),
+
+  gamepadAxes: { steer: 0, throttle: 0, brake: 0, active: false },
+  setGamepadAxes: (steer, throttle, brake, active) => set({ gamepadAxes: { steer, throttle, brake, active } }),
+  gamepadConnected: false,
+  setGamepadConnected: (connected) => set({ gamepadConnected: connected }),
 
   currentLapStart: 0,
   lapCount: saved.laps,
