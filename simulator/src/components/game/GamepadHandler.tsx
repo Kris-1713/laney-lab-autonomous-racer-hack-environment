@@ -6,15 +6,19 @@ import { useGameStore } from '@/lib/stores/game-store';
 const DEADZONE = 0.05;
 
 /**
- * Polls the browser Gamepad API each animation frame and writes analog axes
- * to the game store. When active (any axis exceeds deadzone), Car3D uses
- * these values instead of keyboard keys for manual driving.
+ * Polls the browser Gamepad API each animation frame and writes directly to
+ * the unified input store. When a gamepad is connected it owns all driving
+ * input; KeyboardHandler defers to it.
  *
- * Standard gamepad mapping:
- *   axes[0]       — left stick X:    -1 (left) … 1 (right)  → steering
- *   buttons[7]    — right trigger:    0 … 1                  → throttle
- *   buttons[6]    — left trigger:     0 … 1                  → brake
- *   buttons[9]    — Start             → pause / resume
+ * Standard gamepad mapping (Chrome/Edge, Xbox + PS):
+ *   axes[0]    — left stick X: -1 (left) … 1 (right)  → steering (negated for car convention)
+ *   buttons[7] — RT / R2:      0 … 1                   → throttle
+ *   buttons[6] — LT / L2:      0 … 1                   → brake
+ *   buttons[9] — Start / Options                        → pause / resume
+ *
+ * Raw mapping fallback (Firefox / Linux):
+ *   axes[5]    — right trigger: -1 (released) … 1 (pressed) → throttle
+ *   axes[4]    — left trigger:  -1 (released) … 1 (pressed) → brake
  */
 export function GamepadHandler() {
   useEffect(() => {
@@ -29,7 +33,7 @@ export function GamepadHandler() {
       const anyLeft = Array.from(remaining).some(Boolean);
       if (!anyLeft) {
         useGameStore.getState().setGamepadConnected(false);
-        useGameStore.getState().setGamepadAxes(0, 0, 0, false);
+        useGameStore.getState().setInput({ steer: 0, throttle: 0, brake: false });
       }
     }
 
@@ -45,24 +49,22 @@ export function GamepadHandler() {
       const gp = gamepads[0] ?? gamepads[1] ?? gamepads[2] ?? gamepads[3];
 
       if (gp) {
+        // Steer: negate axis so left stick left → steerTarget positive (left turn)
         const rawSteer = gp.axes[0] ?? 0;
-        const steer = Math.abs(rawSteer) > DEADZONE ? rawSteer : 0;
+        const steer = Math.abs(rawSteer) > DEADZONE ? -rawSteer : 0;
 
-        // Standard mapping (Chrome/Edge, Xbox + PS): triggers are buttons[6/7].value (0–1).
-        // Raw mapping (Firefox/Linux): triggers are axes[4/5] ranging -1 (released) to 1 (pressed).
+        // Triggers: standard mapping → buttons[6/7].value; raw mapping → axes[4/5]
         const isStandard = gp.mapping === 'standard';
         const throttle = isStandard
           ? (gp.buttons[7]?.value ?? 0)
           : Math.max(0, ((gp.axes[5] ?? -1) + 1) / 2);
-        const brake = isStandard
+        const brakeVal = isStandard
           ? (gp.buttons[6]?.value ?? 0)
           : Math.max(0, ((gp.axes[4] ?? -1) + 1) / 2);
 
-        const active = Math.abs(steer) > 0 || throttle > DEADZONE || brake > DEADZONE;
+        useGameStore.getState().setInput({ steer, throttle, brake: brakeVal > 0.1 });
 
-        useGameStore.getState().setGamepadAxes(steer, throttle, brake, active);
-
-        // Start button → pause / resume (mirrors Escape key behaviour)
+        // Start / Options → pause / resume
         if (gp.buttons[9]?.pressed) {
           const store = useGameStore.getState();
           if (store.mode === 'driving') store.setMode('paused');

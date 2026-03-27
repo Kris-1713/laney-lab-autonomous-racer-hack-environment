@@ -125,92 +125,34 @@ export function Car3D() {
         car.speed = Math.max(car.speed - FRICTION * 2 * dt, clampedTarget);
       }
     } else {
-      // --- Manual input (gamepad analog takes priority over keyboard) ---
-      const gp = store.gamepadAxes;
+      // --- Manual input — unified from keyboard or gamepad via store.input ---
+      const { steer, throttle, brake } = store.input;
 
-      if (gp.active) {
-        // Analog gamepad: set targets directly from axis values.
-        // Negate: axes[0] is -1=left/+1=right, but car convention is +1=left/-1=right.
-        car.steerTarget = -gp.steer;
-        const braking = gp.brake > 0.1;
-        car.throttleTarget = braking ? 0 : gp.throttle;
+      car.steerTarget = steer;
+      car.steering += clamp(car.steerTarget - car.steering, -STEER_RAMP * dt, STEER_RAMP * dt);
+      if (Math.abs(car.steerTarget) < 0.05) car.steering *= 1 - (STEER_DAMP * dt);
+      car.steering = clamp(car.steering, -1, 1);
+      if (Math.abs(car.steering) < 0.01) car.steering = 0;
 
-        // Ramp steering toward target
-        car.steering += clamp(car.steerTarget - car.steering, -STEER_RAMP * dt, STEER_RAMP * dt);
-        // Auto-recenter when stick is near centre
-        if (Math.abs(car.steerTarget) < 0.05) {
-          car.steering *= 1 - (STEER_DAMP * dt);
-        }
-        car.steering = clamp(car.steering, -1, 1);
-        if (Math.abs(car.steering) < 0.01) car.steering = 0;
-
-        // Ramp throttle toward target
-        car.throttle += clamp(car.throttleTarget - car.throttle, -THROTTLE_RAMP * dt, THROTTLE_RAMP * dt);
-        car.throttle = clamp(car.throttle, 0, 1);
-
-        // Apply acceleration / braking
-        if (car.throttle > 0.01) {
-          car.speed = Math.min(car.speed + ACCELERATION * car.throttle * dt, effectiveMaxSpeed);
-        }
-        if (braking) {
-          car.speed = Math.max(car.speed - BRAKE_FORCE * dt, -5);
-        }
-        if (!braking && car.throttleTarget < 0.05 && car.throttle < 0.05) {
-          if (car.speed > 0) car.speed = Math.max(0, car.speed - FRICTION * dt);
-          else if (car.speed < 0) car.speed = Math.min(0, car.speed + FRICTION * dt);
-        }
+      if (brake) {
+        car.throttleTarget = 0;
+      } else if (throttle > 0) {
+        car.throttleTarget = throttle;
       } else {
-        // --- Keyboard input (target + ramp) ---
-        const keys = store.keys;
-        const up = keys['ArrowUp'] || keys['w'] || keys['W'];
-        const down = keys['ArrowDown'] || keys['s'] || keys['S'];
-        const left = keys['ArrowLeft'] || keys['a'] || keys['A'];
-        const right = keys['ArrowRight'] || keys['d'] || keys['D'];
-        const brake = keys[' ']; // Space = panic brake
+        car.throttleTarget = Math.max(0, car.throttleTarget - 0.5 * dt);
+      }
+      car.throttle += clamp(car.throttleTarget - car.throttle, -THROTTLE_RAMP * dt, THROTTLE_RAMP * dt);
+      car.throttle = clamp(car.throttle, 0, 1);
 
-        // Steering target: digital keys set target, ramp smooths it
-        if (left) car.steerTarget = 1;
-        else if (right) car.steerTarget = -1;
-        else car.steerTarget = 0;
-
-        // Ramp steering toward target
-        car.steering += clamp(car.steerTarget - car.steering, -STEER_RAMP * dt, STEER_RAMP * dt);
-        // Auto-recenter damping when no steer input
-        if (!left && !right) {
-          car.steering *= 1 - (STEER_DAMP * dt);
-        }
-        car.steering = clamp(car.steering, -1, 1);
-        // Snap to zero if very small
-        if (Math.abs(car.steering) < 0.01) car.steering = 0;
-
-        // Throttle target from keys
-        if (brake) {
-          car.throttleTarget = 0; // panic brake
-        } else if (up) {
-          car.throttleTarget = 1;
-        } else if (down) {
-          car.throttleTarget = 0; // release gas (braking handled via BRAKE_FORCE below)
-        } else {
-          // No key: coast — throttle target decays toward 0
-          car.throttleTarget = Math.max(0, car.throttleTarget - 0.5 * dt);
-        }
-
-        // Ramp throttle toward target
-        car.throttle += clamp(car.throttleTarget - car.throttle, -THROTTLE_RAMP * dt, THROTTLE_RAMP * dt);
-        car.throttle = clamp(car.throttle, 0, 1);
-
-        // Apply acceleration / braking from throttle
-        if (car.throttle > 0.01) {
-          car.speed = Math.min(car.speed + ACCELERATION * car.throttle * dt, effectiveMaxSpeed);
-        }
-        if (down || brake) {
-          car.speed = Math.max(car.speed - BRAKE_FORCE * dt, -5);
-        }
-        if (!up && !down && !brake && car.throttle < 0.05) {
-          // Coast friction
-          if (car.speed > 0) car.speed = Math.max(0, car.speed - FRICTION * dt);
-          else if (car.speed < 0) car.speed = Math.min(0, car.speed + FRICTION * dt);
-        }
+      if (car.throttle > 0.01) {
+        car.speed = Math.min(car.speed + ACCELERATION * car.throttle * dt, effectiveMaxSpeed);
+      }
+      if (brake) {
+        car.speed = Math.max(car.speed - BRAKE_FORCE * dt, -5);
+      }
+      if (!brake && throttle < 0.05 && car.throttle < 0.05) {
+        if (car.speed > 0) car.speed = Math.max(0, car.speed - FRICTION * dt);
+        else if (car.speed < 0) car.speed = Math.min(0, car.speed + FRICTION * dt);
       }
     }
 

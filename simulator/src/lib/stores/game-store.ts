@@ -56,13 +56,9 @@ interface GameState {
   car: CarState;
   updateCar: (partial: Partial<CarState>) => void;
 
-  // Input
-  keys: Record<string, boolean>;
-  setKey: (key: string, down: boolean) => void;
-
-  // Gamepad analog input
-  gamepadAxes: { steer: number; throttle: number; brake: number; active: boolean };
-  setGamepadAxes: (steer: number, throttle: number, brake: number, active: boolean) => void;
+  // Unified directional input (written by KeyboardHandler or GamepadHandler)
+  input: { steer: number; throttle: number; brake: boolean };
+  setInput: (input: { steer: number; throttle: number; brake: boolean }) => void;
   gamepadConnected: boolean;
   setGamepadConnected: (connected: boolean) => void;
 
@@ -145,11 +141,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   car: { x: 30, z: 0, rotation: Math.PI / 2, speed: 0, steering: 0, throttle: 0, steerTarget: 0, throttleTarget: 0 },
   updateCar: (partial) => set((s) => ({ car: { ...s.car, ...partial } })),
 
-  keys: {},
-  setKey: (key, down) => set((s) => ({ keys: { ...s.keys, [key]: down } })),
-
-  gamepadAxes: { steer: 0, throttle: 0, brake: 0, active: false },
-  setGamepadAxes: (steer, throttle, brake, active) => set({ gamepadAxes: { steer, throttle, brake, active } }),
+  input: { steer: 0, throttle: 0, brake: false },
+  setInput: (input) => set({ input }),
   gamepadConnected: false,
   setGamepadConnected: (connected) => set({ gamepadConnected: connected }),
 
