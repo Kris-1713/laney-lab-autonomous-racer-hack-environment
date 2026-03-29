@@ -91,10 +91,6 @@ export function TouchHandler() {
       setJoystick(null);
     }
 
-    window.addEventListener('touchcancel', onTouchEnd);
-    window.removeEventListener('touchcancel', onTouchEnd);
-
-
     window.addEventListener('touchstart', onTouchStart, { passive: true });
     window.addEventListener('touchmove', onTouchMove, { passive: false });
     window.addEventListener('touchend', onTouchEnd);
