@@ -92,11 +92,11 @@ export function LapCompletion() {
       announcementRef.current.setAttribute('aria-live', 'polite');
     }
 
-    // Auto-dismiss after 5 seconds or on user action
+    // Auto-dismiss after a short delay or on user action
     timeoutRef.current = setTimeout(() => {
       setCelebrationActive(false);
       setParticles([]);
-    }, 5000);
+    }, 7000);
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -175,10 +175,11 @@ export function LapCompletion() {
       </div>
 
       {/* Main celebration card */}
-      <animated.div
-        style={containerAnimation}
-        className="lap-completion-card"
-      >
+      <div className="lap-completion-card-positioner">
+        <animated.div
+          style={containerAnimation}
+          className="lap-completion-card"
+        >
         {/* Celebration title */}
         <animated.div
           style={titleAnimation}
@@ -259,7 +260,8 @@ export function LapCompletion() {
         <div className="lap-completion-instructions">
           Press <kbd>ESC</kbd> or click to dismiss
         </div>
-      </animated.div>
+        </animated.div>
+      </div>
 
       {/* Overlay */}
       <div
